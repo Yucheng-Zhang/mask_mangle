@@ -7,13 +7,6 @@ import mangle as man
 import multiprocessing as mp
 import argparse
 
-# global variables
-mask_n = None
-mask_s = None
-ra = None
-dec = None
-b = None
-
 
 def OnePixel(i):
     if b[i] > 0.:
@@ -39,7 +32,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    global mask_n, mask_s, ra, dec, b
+#    global mask_n, mask_s, ra, dec, b
 
     mask_n = man.Mangle(args.mask_n)
     mask_s = man.Mangle(args.mask_s)
