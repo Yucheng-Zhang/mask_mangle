@@ -1,51 +1,78 @@
 '''
-Make mask.
+Make mask map with mangle polygon data files.
 '''
 import numpy as np
 import healpy as hp
 import mangle as man
 import multiprocessing as mp
+import argparse
 
-cat_path = './input/'
+# global variables
+mask_n = None
+mask_s = None
+ra = None
+dec = None
+b = None
 
-mask_n = man.Mangle(cat_path + 'mask_DR14_LRG_N.ply')
-mask_s = man.Mangle(cat_path + 'mask_DR14_LRG_S.ply')
-
-r = hp.Rotator(coord=['G', 'C'])
-
-nside = 128
-npix = hp.nside2npix(nside)
-print('npix = {0:d}'.format(npix))
-
-theta_gal, phi_gal = hp.pix2ang(nside, np.arange(npix))
-
-theta_equ, phi_equ = r(theta_gal, phi_gal)
-ra = np.rad2deg(phi_equ)
-dec = 90. - np.rad2deg(theta_equ)
-
-b = 90. - np.rad2deg(theta_gal)
 
 def OnePixel(i):
     if i % 100 == 0:
-        print('{0:.2f} %'.format(100.*i/npix))
+        print('{0:.2f} %'.format(100. * i / npix))
     if b[i] > 0.:
         return mask_n.weight(ra[i], dec[i])
     else:
         return mask_s.weight(ra[i], dec[i])
 
 
-num_cpus = mp.cpu_count()
-print('Num of CPUs: {0:d}'.format(num_cpus))
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Make mask map with mangle polygon data files.')
+    parser.add_argument('-mask_n', default='',
+                        help='input north polygon mask file')
+    parser.add_argument('-mask_s', default='',
+                        help='input south polygon mask file')
+    parser.add_argument('-nside', type=int, default=128,
+                        help='nside for the output mask map')
+    parser.add_argument('-ncpu', type=int, default=0,
+                        help='''number of cpus for multiprocessing\n
+                        0: detect with cpu_count''')
+    parser.add_argument('-outmask', default='',
+                        help='output mask map file name')
 
-pool = mp.Pool(num_cpus)
-mask = pool.map(OnePixel, [i for i in range(npix)])
-pool.close()
-pool.join()
+    args = parser.parse_args()
 
-#for i in range(npix): OnePixel(i)
+    global mask_n, mask_s, ra, dec, b
 
-mask = np.array(mask)
-mask[np.where(mask==-1)] = 0.
+    mask_n = man.Mangle(args.mask_n)
+    mask_s = man.Mangle(args.mask_s)
 
-hp.write_map('output/mask_DR14_LRG_nside_{0:d}_para.fits'.format(nside), mask)
+    r = hp.Rotator(coord=['G', 'C'])
 
+    nside = args.nside
+    npix = hp.nside2npix(nside)
+    print('npix = {0:d}'.format(npix))
+
+    theta_gal, phi_gal = hp.pix2ang(nside, np.arange(npix))
+
+    theta_equ, phi_equ = r(theta_gal, phi_gal)
+    ra = np.rad2deg(phi_equ)
+    dec = 90. - np.rad2deg(theta_equ)
+
+    b = 90. - np.rad2deg(theta_gal)
+
+    if args.ncpu == 0:
+        num_cpus = mp.cpu_count()
+    else:
+        num_cpus = args.ncpu
+
+    print('Number of CPUs: {0:d}'.format(num_cpus))
+
+    pool = mp.Pool(num_cpus)
+    mask = pool.map(OnePixel, [i for i in range(npix)])
+    pool.close()
+    pool.join()
+
+    mask = np.array(mask)
+    mask[np.where(mask == -1)] = 0.
+
+    hp.write_map(args.outmask, mask)
