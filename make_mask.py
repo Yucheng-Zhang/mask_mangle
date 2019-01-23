@@ -16,8 +16,6 @@ b = None
 
 
 def OnePixel(i):
-    if i % 100 == 0:
-        print('{0:.2f} %'.format(100. * i / npix))
     if b[i] > 0.:
         return mask_n.weight(ra[i], dec[i])
     else:
