@@ -31,8 +31,8 @@ if __name__ == '__main__':
     nline = int(npix / nfile)
 
     for i in range(nfile - 1):
-        fn = './ra_dec_files/radec_{0:0>2}.npy'.format(i)
+        fn = './ra_dec_files/radec_{0:0>3}.npy'.format(i)
         np.save(fn, data[i * nline: (i + 1) * nline])
 
-        fn = './ra_dec_files/radec_{0:0>2}.npy'.format(nfile - 1)
+        fn = './ra_dec_files/radec_{0:0>3}.npy'.format(nfile - 1)
         np.save(fn, data[(nfile - 1) * nline:])

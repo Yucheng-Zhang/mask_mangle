@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     mask = mg.Mangle(args.mask)
 
-    radec_fn = './ra_dec_files/radec_{0:0>2}.npy'.format(args.taskid)
+    radec_fn = './ra_dec_files/radec_{0:0>3}.npy'.format(args.taskid)
 
     data = np.load(radec_fn)
     ipix = data[:, 0]
@@ -37,5 +37,5 @@ if __name__ == '__main__':
         w[i] = mask.weight(ra[i], dec[i])
 
     data = np.column_stack((ipix, w))
-    fn = './mask_files/masks_{0:0>2}.npy'.format(args.taskid)
+    fn = './mask_files/masks_{0:0>3}.npy'.format(args.taskid)
     np.save(fn, data)

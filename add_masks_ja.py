@@ -16,7 +16,7 @@ if __name__ == '__main__':
     mask = np.array([])
 
     for i in range(args.nfile):
-        fn = './mask_files/masks_{0:0>2}.npy'.format(i)
+        fn = './mask_files/masks_{0:0>3}.npy'.format(i)
         data = np.load(fn)
 #        ipix = data[:, 0]
         mask = np.append(mask, data[:, 1])
